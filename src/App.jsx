@@ -38,23 +38,23 @@ const SupplierCard = ({ m, onRequestQuote }) => {
       boxShadow: open ? "0 6px 28px rgba(232,120,45,0.07)" : "0 1px 4px rgba(0,0,0,0.03)",
       transition: "all 0.25s ease",
     }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "5px" }}>
+      <div className="card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="card-title-row" style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "5px", flexWrap: "wrap" }}>
             <h4 style={{ fontFamily: "var(--serif)", fontSize: "19px", fontWeight: 600, color: "#18182B", margin: 0 }}>{m.name}</h4>
             <StarRating rating={m.rating} />
           </div>
           <p style={{ fontFamily: "var(--sans)", fontSize: "13.5px", color: "#999", margin: "0 0 12px" }}>{m.location} · Est. {m.established}</p>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>{m.specialties.map(s => <Tag key={s}>{s}</Tag>)}</div>
         </div>
-        <div style={{ textAlign: "right", flexShrink: 0, marginLeft: "24px" }}>
+        <div className="card-price" style={{ textAlign: "right", flexShrink: 0, marginLeft: "24px" }}>
           <p style={{ fontFamily: "var(--mono)", fontSize: "15px", fontWeight: 600, color: "#18182B", margin: 0 }}>{m.priceRange}</p>
           <p style={{ fontFamily: "var(--sans)", fontSize: "12px", color: "#bbb", margin: "3px 0 0" }}>per yard</p>
         </div>
       </div>
       {open && (
         <div style={{ marginTop: "22px", paddingTop: "22px", borderTop: "1px solid #F2F2F4" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px", marginBottom: "18px" }}>
+          <div className="card-detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px", marginBottom: "18px" }}>
             {[["MOQ", `${m.moq} yds`], ["Lead Time", m.leadTime], ["Capacity", m.capacity]].map(([l, v]) => (
               <div key={l}>
                 <p style={{ fontFamily: "var(--sans)", fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#bbb", margin: 0 }}>{l}</p>
@@ -178,6 +178,7 @@ export default function StitchfaceHomepage() {
   const [quoteSupplier, setQuoteSupplier] = useState(null);
   const [scrollY, setScrollY] = useState(0);
   const [vis, setVis] = useState({});
+  const [mobileMenu, setMobileMenu] = useState(false);
   const demoRef = useRef(null);
 
   useEffect(() => {
@@ -230,25 +231,43 @@ export default function StitchfaceHomepage() {
         html { scroll-behavior: smooth; }
         @keyframes heroIn { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: translateY(0); } }
         select option { background: #fff; color: #18182B; }
+        .nav-links { display: flex; gap: 32px; align-items: center; }
+        .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
         @media (max-width: 860px) {
           .stat-grid { grid-template-columns: 1fr 1fr !important; }
           .step-grid { grid-template-columns: 1fr !important; }
           .tab-row { flex-direction: column !important; }
           .kpi-row { grid-template-columns: 1fr 1fr !important; }
           .order-grid { grid-template-columns: 1fr !important; gap: 4px !important; }
-          .hero-h1 { font-size: 42px !important; }
-          .wrap { padding-left: 24px !important; padding-right: 24px !important; }
+          .hero-h1 { font-size: 36px !important; }
+          .wrap { padding-left: 20px !important; padding-right: 20px !important; }
+          .nav-links { display: none !important; }
+          .mobile-menu-btn { display: block !important; }
+          .nav-pad { padding: 0 20px !important; }
+          .hero-section { padding-top: 110px !important; padding-bottom: 72px !important; }
+          .hero-sub { font-size: 16px !important; }
+          .hero-buttons { flex-direction: column !important; align-items: center !important; }
+          .hero-buttons button { width: 100% !important; max-width: 280px !important; }
+          .section-h2 { font-size: 28px !important; }
+          .cta-box { padding: 48px 28px !important; }
+          .cta-h2 { font-size: 28px !important; }
+          .cta-buttons { flex-direction: column !important; align-items: center !important; }
+          .cta-buttons button { width: 100% !important; max-width: 280px !important; }
+          .footer-bar { flex-direction: column !important; gap: 12px !important; text-align: center !important; }
+          .card-header { flex-direction: column !important; }
+          .card-price { text-align: left !important; margin-left: 0 !important; margin-top: 12px !important; padding-top: 12px !important; border-top: 1px solid #F2F2F4 !important; }
+          .card-detail-grid { grid-template-columns: 1fr 1fr !important; }
         }
       `}</style>
 
       {/* NAV */}
-      <nav style={{
+      <nav className="nav-pad" style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 48px",
-        background: scrollY > 30 ? "rgba(250,250,251,0.92)" : "transparent",
-        backdropFilter: scrollY > 30 ? "blur(14px)" : "none",
-        borderBottom: scrollY > 30 ? "1px solid var(--faint)" : "1px solid transparent",
+        background: scrollY > 30 || mobileMenu ? "rgba(250,250,251,0.97)" : "transparent",
+        backdropFilter: scrollY > 30 || mobileMenu ? "blur(14px)" : "none",
+        borderBottom: scrollY > 30 || mobileMenu ? "1px solid var(--faint)" : "1px solid transparent",
         transition: "all 0.3s ease",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
@@ -260,7 +279,8 @@ export default function StitchfaceHomepage() {
           </svg>
           <span style={{ fontFamily: "var(--sans)", fontWeight: 600, fontSize: "16.5px", color: "var(--ink)", letterSpacing: "-0.01em" }}>stitchface</span>
         </div>
-        <div style={{ display: "flex", gap: "32px", alignItems: "center" }}>
+        {/* Desktop nav */}
+        <div className="nav-links">
           {["How It Works", "Suppliers", "Pricing"].map(t => (
             <a key={t} href="#" style={{ fontFamily: "var(--sans)", fontSize: "14px", color: "#999", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }}
               onMouseEnter={e => e.target.style.color = "var(--ink)"} onMouseLeave={e => e.target.style.color = "#999"}>{t}</a>
@@ -270,10 +290,38 @@ export default function StitchfaceHomepage() {
             fontFamily: "var(--sans)", fontSize: "13.5px", fontWeight: 600, cursor: "pointer",
           }}>Get Started</button>
         </div>
+        {/* Mobile hamburger */}
+        <button className="mobile-menu-btn" onClick={() => setMobileMenu(!mobileMenu)}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round">
+            {mobileMenu ? (<><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></>) 
+              : (<><line x1="4" y1="7" x2="20" y2="7" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" /></>)}
+          </svg>
+        </button>
       </nav>
 
+      {/* Mobile dropdown menu */}
+      {mobileMenu && (
+        <div style={{
+          position: "fixed", top: "64px", left: 0, right: 0, zIndex: 99,
+          background: "rgba(250,250,251,0.97)", backdropFilter: "blur(14px)",
+          borderBottom: "1px solid var(--faint)", padding: "16px 20px",
+          display: "flex", flexDirection: "column", gap: "12px",
+        }}>
+          {["How It Works", "Suppliers", "Pricing"].map(t => (
+            <a key={t} href="#" onClick={() => setMobileMenu(false)} style={{
+              fontFamily: "var(--sans)", fontSize: "15px", color: "var(--ink)", textDecoration: "none",
+              fontWeight: 500, padding: "8px 0", borderBottom: "1px solid #F0F0F3",
+            }}>{t}</a>
+          ))}
+          <button style={{
+            padding: "12px", background: "var(--ink)", color: "#fff", border: "none", borderRadius: "8px",
+            fontFamily: "var(--sans)", fontSize: "14px", fontWeight: 600, cursor: "pointer", marginTop: "4px",
+          }}>Get Started</button>
+        </div>
+      )}
+
       {/* HERO */}
-      <section className="wrap" style={{ maxWidth: "1100px", margin: "0 auto", padding: "148px 48px 112px" }}>
+      <section className="wrap hero-section" style={{ maxWidth: "1100px", margin: "0 auto", padding: "148px 48px 112px" }}>
         <div style={{ maxWidth: "680px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 16px 5px 12px", background: "#FEF3EB", borderRadius: "100px", marginBottom: "32px", animation: "heroIn 0.7s ease both", animationDelay: "0.1s" }}>
             <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "var(--accent)" }} />
@@ -289,7 +337,7 @@ export default function StitchfaceHomepage() {
             <span style={{ color: "var(--accent)" }}>Skip the middlemen.</span>
           </h1>
 
-          <p style={{
+          <p className="hero-sub" style={{
             fontFamily: "var(--sans)", fontSize: "18.5px", lineHeight: 1.75, color: "var(--muted)",
             fontWeight: 400, maxWidth: "540px", margin: "0 auto 44px",
             animation: "heroIn 0.8s ease both", animationDelay: "0.35s",
@@ -297,7 +345,7 @@ export default function StitchfaceHomepage() {
             Stitchface connects American fashion brands with verified Bangladeshi textile manufacturers — reducing lead times, cutting costs, and making ethical sourcing simple.
           </p>
 
-          <div style={{ display: "flex", gap: "14px", justifyContent: "center", animation: "heroIn 0.8s ease both", animationDelay: "0.5s" }}>
+          <div className="hero-buttons" style={{ display: "flex", gap: "14px", justifyContent: "center", animation: "heroIn 0.8s ease both", animationDelay: "0.5s" }}>
             <button onClick={() => demoRef.current?.scrollIntoView({ behavior: "smooth" })} style={{
               padding: "14px 34px", background: "var(--accent)", color: "#fff", border: "none", borderRadius: "10px",
               fontFamily: "var(--sans)", fontSize: "15px", fontWeight: 600, cursor: "pointer",
@@ -333,7 +381,7 @@ export default function StitchfaceHomepage() {
       {/* HOW IT WORKS */}
       <section data-anim="how" className="wrap" style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 48px 120px", ...anim("how") }}>
         <p style={{ fontFamily: "var(--sans)", fontSize: "13px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--accent)", marginBottom: "14px", textAlign: "center" }}>How It Works</p>
-        <h2 style={{ fontFamily: "var(--serif)", fontSize: "38px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--ink)", marginBottom: "52px", textAlign: "center" }}>
+        <h2 className="section-h2" style={{ fontFamily: "var(--serif)", fontSize: "38px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--ink)", marginBottom: "52px", textAlign: "center" }}>
           Three steps to your first shipment
         </h2>
         <div className="step-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px" }}>
@@ -362,7 +410,7 @@ export default function StitchfaceHomepage() {
       {/* DEMO */}
       <section ref={demoRef} data-anim="demo" className="wrap" style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 48px 120px", ...anim("demo") }}>
         <p style={{ fontFamily: "var(--sans)", fontSize: "13px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--accent)", marginBottom: "14px", textAlign: "center" }}>Interactive Demo</p>
-        <h2 style={{ fontFamily: "var(--serif)", fontSize: "38px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--ink)", marginBottom: "40px", textAlign: "center" }}>
+        <h2 className="section-h2" style={{ fontFamily: "var(--serif)", fontSize: "38px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--ink)", marginBottom: "40px", textAlign: "center" }}>
           See how it works
         </h2>
 
@@ -388,7 +436,7 @@ export default function StitchfaceHomepage() {
             <div style={{ padding: "28px" }}>
               <div style={{ display: "flex", gap: "12px", marginBottom: "22px", flexWrap: "wrap", alignItems: "center" }}>
                 <input type="text" placeholder="Search manufacturers..." value={search} onChange={e => setSearch(e.target.value)}
-                  style={{ width: "260px", padding: "10px 14px", background: "#FAFAFB", border: "1px solid #E5E5E8", borderRadius: "8px", fontFamily: "var(--sans)", fontSize: "13.5px", color: "var(--ink)", outline: "none" }} />
+                  style={{ flex: "1 1 200px", minWidth: "0", maxWidth: "260px", padding: "10px 14px", background: "#FAFAFB", border: "1px solid #E5E5E8", borderRadius: "8px", fontFamily: "var(--sans)", fontSize: "13.5px", color: "var(--ink)", outline: "none" }} />
                 <select value={filter} onChange={e => setFilter(e.target.value)} style={{
                   padding: "10px 14px", background: "#FAFAFB", border: "1px solid #E5E5E8", borderRadius: "8px",
                   fontFamily: "var(--sans)", fontSize: "13.5px", color: "var(--ink)", outline: "none", cursor: "pointer",
@@ -422,18 +470,18 @@ export default function StitchfaceHomepage() {
 
       {/* CTA */}
       <section data-anim="cta" className="wrap" style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 48px 120px", ...anim("cta") }}>
-        <div style={{
+        <div className="cta-box" style={{
           background: "var(--ink)", borderRadius: "20px", padding: "88px 60px", textAlign: "center",
           position: "relative", overflow: "hidden",
         }}>
           <div style={{ position: "absolute", top: "-100px", right: "-80px", width: "320px", height: "320px", borderRadius: "50%", background: "rgba(232,120,45,0.07)" }} />
           <div style={{ position: "absolute", bottom: "-70px", left: "-50px", width: "220px", height: "220px", borderRadius: "50%", background: "rgba(232,120,45,0.04)" }} />
           <div style={{ position: "relative", zIndex: 1 }}>
-            <h2 style={{ fontFamily: "var(--serif)", fontSize: "40px", fontWeight: 700, color: "#fff", marginBottom: "16px", letterSpacing: "-0.02em" }}>Ready to source smarter?</h2>
+            <h2 className="cta-h2" style={{ fontFamily: "var(--serif)", fontSize: "40px", fontWeight: 700, color: "#fff", marginBottom: "16px", letterSpacing: "-0.02em" }}>Ready to source smarter?</h2>
             <p style={{ fontFamily: "var(--sans)", fontSize: "17px", color: "rgba(255,255,255,0.55)", maxWidth: "440px", margin: "0 auto 40px", lineHeight: 1.7 }}>
               Join brands already using Stitchface to connect directly with Bangladesh's top textile manufacturers.
             </p>
-            <div style={{ display: "flex", gap: "14px", justifyContent: "center" }}>
+            <div className="cta-buttons" style={{ display: "flex", gap: "14px", justifyContent: "center" }}>
               <button style={{ padding: "16px 40px", background: "var(--accent)", color: "#fff", border: "none", borderRadius: "10px", fontFamily: "var(--sans)", fontSize: "15px", fontWeight: 600, cursor: "pointer", boxShadow: "0 3px 16px rgba(232,120,45,0.3)" }}>Create Free Account</button>
               <button style={{ padding: "16px 40px", background: "transparent", color: "#fff", border: "1px solid rgba(255,255,255,0.18)", borderRadius: "10px", fontFamily: "var(--sans)", fontSize: "15px", fontWeight: 500, cursor: "pointer" }}>Talk to Sales</button>
             </div>
@@ -442,7 +490,7 @@ export default function StitchfaceHomepage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="wrap" style={{
+      <footer className="wrap footer-bar" style={{
         maxWidth: "1100px", margin: "0 auto", padding: "32px 48px 52px",
         display: "flex", justifyContent: "space-between", alignItems: "center",
         borderTop: "1px solid var(--faint)",
