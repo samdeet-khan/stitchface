@@ -212,9 +212,10 @@ export default function StitchfaceHomepage() {
   });
 
   return (
-    <div style={{ background: "#FAFAFB", color: "#18182B", minHeight: "100vh" }}>
+    <div style={{ background: "#FAFAFB", color: "#18182B", minHeight: "100vh", width: "100%", maxWidth: "100vw", overflowX: "hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+        html, body, #root { width: 100%; margin: 0; padding: 0; }
         :root {
           --serif: 'Source Serif 4', Georgia, serif;
           --sans: 'IBM Plex Sans', -apple-system, sans-serif;
