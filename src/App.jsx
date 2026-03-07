@@ -273,7 +273,7 @@ export default function StitchfaceHomepage() {
 
       {/* HERO */}
       <section className="wrap" style={{ maxWidth: "1100px", margin: "0 auto", padding: "148px 48px 112px" }}>
-        <div style={{ maxWidth: "680px" }}>
+        <div style={{ maxWidth: "680px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 16px 5px 12px", background: "#FEF3EB", borderRadius: "100px", marginBottom: "32px", animation: "heroIn 0.7s ease both", animationDelay: "0.1s" }}>
             <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "var(--accent)" }} />
             <span style={{ fontFamily: "var(--sans)", fontSize: "13px", fontWeight: 600, color: "#C06A25" }}>Connecting US brands with Bangladesh's top textile mills</span>
@@ -290,13 +290,13 @@ export default function StitchfaceHomepage() {
 
           <p style={{
             fontFamily: "var(--sans)", fontSize: "18.5px", lineHeight: 1.75, color: "var(--muted)",
-            fontWeight: 400, maxWidth: "540px", marginBottom: "44px",
+            fontWeight: 400, maxWidth: "540px", margin: "0 auto 44px",
             animation: "heroIn 0.8s ease both", animationDelay: "0.35s",
           }}>
             Stitchface connects American fashion brands with verified Bangladeshi textile manufacturers — reducing lead times, cutting costs, and making ethical sourcing simple.
           </p>
 
-          <div style={{ display: "flex", gap: "14px", animation: "heroIn 0.8s ease both", animationDelay: "0.5s" }}>
+          <div style={{ display: "flex", gap: "14px", justifyContent: "center", animation: "heroIn 0.8s ease both", animationDelay: "0.5s" }}>
             <button onClick={() => demoRef.current?.scrollIntoView({ behavior: "smooth" })} style={{
               padding: "14px 34px", background: "var(--accent)", color: "#fff", border: "none", borderRadius: "10px",
               fontFamily: "var(--sans)", fontSize: "15px", fontWeight: 600, cursor: "pointer",
@@ -331,8 +331,8 @@ export default function StitchfaceHomepage() {
 
       {/* HOW IT WORKS */}
       <section data-anim="how" className="wrap" style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 48px 120px", ...anim("how") }}>
-        <p style={{ fontFamily: "var(--sans)", fontSize: "13px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--accent)", marginBottom: "14px" }}>How It Works</p>
-        <h2 style={{ fontFamily: "var(--serif)", fontSize: "38px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--ink)", marginBottom: "52px" }}>
+        <p style={{ fontFamily: "var(--sans)", fontSize: "13px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--accent)", marginBottom: "14px", textAlign: "center" }}>How It Works</p>
+        <h2 style={{ fontFamily: "var(--serif)", fontSize: "38px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--ink)", marginBottom: "52px", textAlign: "center" }}>
           Three steps to your first shipment
         </h2>
         <div className="step-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px" }}>
@@ -360,8 +360,8 @@ export default function StitchfaceHomepage() {
 
       {/* DEMO */}
       <section ref={demoRef} data-anim="demo" className="wrap" style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 48px 120px", ...anim("demo") }}>
-        <p style={{ fontFamily: "var(--sans)", fontSize: "13px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--accent)", marginBottom: "14px" }}>Interactive Demo</p>
-        <h2 style={{ fontFamily: "var(--serif)", fontSize: "38px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--ink)", marginBottom: "40px" }}>
+        <p style={{ fontFamily: "var(--sans)", fontSize: "13px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--accent)", marginBottom: "14px", textAlign: "center" }}>Interactive Demo</p>
+        <h2 style={{ fontFamily: "var(--serif)", fontSize: "38px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--ink)", marginBottom: "40px", textAlign: "center" }}>
           See how it works
         </h2>
 
