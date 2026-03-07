@@ -179,6 +179,13 @@ export default function StitchfaceHomepage() {
   const [scrollY, setScrollY] = useState(0);
   const [vis, setVis] = useState({});
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [bobOpen, setBobOpen] = useState(false);
+  const [bobMessages, setBobMessages] = useState([
+    { role: "assistant", text: "Hey! I'm Bobbin, your Stitchface assistant. I can help you find suppliers, request quotes, navigate the platform, or answer questions about textile sourcing. What can I help with?" }
+  ]);
+  const [bobInput, setBobInput] = useState("");
+  const [bobLoading, setBobLoading] = useState(false);
+  const bobChatRef = useRef(null);
   const demoRef = useRef(null);
 
   useEffect(() => {
@@ -212,6 +219,36 @@ export default function StitchfaceHomepage() {
     transition: "all 0.75s cubic-bezier(0.23, 1, 0.32, 1)",
   });
 
+  const sendBobbin = async () => {
+    if (!bobInput.trim() || bobLoading) return;
+    const userMsg = bobInput.trim();
+    setBobInput("");
+    setBobMessages(prev => [...prev, { role: "user", text: userMsg }]);
+    setBobLoading(true);
+    setTimeout(() => bobChatRef.current?.scrollTo(0, bobChatRef.current.scrollHeight), 50);
+    try {
+      const history = [...bobMessages, { role: "user", text: userMsg }];
+      const apiMessages = history.map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.text }));
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: `You are Bobbin, the friendly AI assistant for Stitchface — a platform that connects US fashion brands directly with verified Bangladeshi textile manufacturers. You are warm, knowledgeable, and concise. You help users with: finding suppliers by fabric type/certification/MOQ/location, understanding the quote request process, navigating the platform (Supplier Directory, Quote System, Brand Dashboard), explaining textile terms and certifications (GOTS, OEKO-TEX, Fair Trade, BCI, WRAP, SEDEX, bluesign), understanding lead times/pricing/shipping, and general sourcing questions. Current suppliers: Apex Knit Composite (Jersey/Terry/Rib, Gazipur), Rumi Textiles (Denim/Twill, Narayanganj), Green Fiber Mills (Organic/Bamboo/Hemp, Chittagong), Shahjalal Weaving (Poplin/Voile/Chambray, Savar), Padma Dye & Finish (Dyeing/Print, Tongi), Bengal Loom Works (Muslin/Jamdani/Handloom, Narsingdi). Keep responses brief (2-4 sentences). Casual, helpful tone.`,
+          messages: apiMessages,
+        }),
+      });
+      const data = await res.json();
+      const reply = data.content?.map(b => b.text || "").join("") || "Sorry, I had trouble with that. Could you rephrase?";
+      setBobMessages(prev => [...prev, { role: "assistant", text: reply }]);
+    } catch {
+      setBobMessages(prev => [...prev, { role: "assistant", text: "I'm having trouble connecting right now. Try again in a moment!" }]);
+    }
+    setBobLoading(false);
+    setTimeout(() => bobChatRef.current?.scrollTo(0, bobChatRef.current.scrollHeight), 100);
+  };
+
   return (
     <div style={{ background: "#FAFAFB", color: "#18182B", minHeight: "100vh", width: "100%", maxWidth: "100vw", overflowX: "hidden" }}>
       <style>{`
@@ -230,6 +267,11 @@ export default function StitchfaceHomepage() {
         ::selection { background: #FDDCBF; color: #18182B; }
         html { scroll-behavior: smooth; }
         @keyframes heroIn { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: translateY(0); } }
+        .tiger-bg {
+          background-color: #E8782D;
+          background-image: url('/tiger-tile.png');
+          background-size: 150px 150px;
+        }
         select option { background: #fff; color: #18182B; }
         .nav-links { display: flex; gap: 32px; align-items: center; }
         .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
@@ -265,34 +307,36 @@ export default function StitchfaceHomepage() {
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 48px",
-        background: scrollY > 30 || mobileMenu ? "rgba(250,250,251,0.97)" : "transparent",
-        backdropFilter: scrollY > 30 || mobileMenu ? "blur(14px)" : "none",
-        borderBottom: scrollY > 30 || mobileMenu ? "1px solid var(--faint)" : "1px solid transparent",
+        background: scrollY > 500 || mobileMenu ? "rgba(250,250,251,0.97)" : "transparent",
+        backdropFilter: scrollY > 500 || mobileMenu ? "blur(14px)" : "none",
+        borderBottom: scrollY > 500 || mobileMenu ? "1px solid var(--faint)" : "1px solid transparent",
         transition: "all 0.3s ease",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
             <rect x="2" y="2" width="9" height="9" rx="2.5" fill="var(--accent)" />
-            <rect x="13" y="2" width="9" height="9" rx="2.5" fill="var(--ink)" opacity="0.12" />
-            <rect x="2" y="13" width="9" height="9" rx="2.5" fill="var(--ink)" opacity="0.12" />
+            <rect x="13" y="2" width="9" height="9" rx="2.5" fill={scrollY > 500 ? "var(--ink)" : "#fff"} opacity={scrollY > 500 ? 0.12 : 0.35} />
+            <rect x="2" y="13" width="9" height="9" rx="2.5" fill={scrollY > 500 ? "var(--ink)" : "#fff"} opacity={scrollY > 500 ? 0.12 : 0.35} />
             <rect x="13" y="13" width="9" height="9" rx="2.5" fill="var(--accent)" opacity="0.45" />
           </svg>
-          <span style={{ fontFamily: "var(--sans)", fontWeight: 600, fontSize: "16.5px", color: "var(--ink)", letterSpacing: "-0.01em" }}>stitchface</span>
+          <span style={{ fontFamily: "var(--sans)", fontWeight: 600, fontSize: "16.5px", color: scrollY > 500 ? "var(--ink)" : "#fff", letterSpacing: "-0.01em", transition: "color 0.3s", textShadow: scrollY > 500 ? "none" : "0 1px 6px rgba(0,0,0,0.2)" }}>stitchface</span>
         </div>
-        {/* Desktop nav */}
         <div className="nav-links">
           {["How It Works", "Suppliers", "Pricing"].map(t => (
-            <a key={t} href="#" style={{ fontFamily: "var(--sans)", fontSize: "14px", color: "#999", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }}
-              onMouseEnter={e => e.target.style.color = "var(--ink)"} onMouseLeave={e => e.target.style.color = "#999"}>{t}</a>
+            <a key={t} href="#" style={{ fontFamily: "var(--sans)", fontSize: "14px", color: scrollY > 500 ? "#999" : "rgba(255,255,255,0.85)", textDecoration: "none", fontWeight: 500, transition: "color 0.3s", textShadow: scrollY > 500 ? "none" : "0 1px 4px rgba(0,0,0,0.15)" }}
+              onMouseEnter={e => e.target.style.color = scrollY > 500 ? "var(--ink)" : "#fff"} onMouseLeave={e => e.target.style.color = scrollY > 500 ? "#999" : "rgba(255,255,255,0.85)"}>{t}</a>
           ))}
           <button style={{
-            padding: "8px 22px", background: "var(--ink)", color: "#fff", border: "none", borderRadius: "8px",
-            fontFamily: "var(--sans)", fontSize: "13.5px", fontWeight: 600, cursor: "pointer",
+            padding: "8px 22px",
+            background: scrollY > 500 ? "var(--ink)" : "rgba(255,255,255,0.2)",
+            color: "#fff",
+            border: scrollY > 500 ? "none" : "1px solid rgba(255,255,255,0.3)",
+            borderRadius: "8px", backdropFilter: "blur(4px)",
+            fontFamily: "var(--sans)", fontSize: "13.5px", fontWeight: 600, cursor: "pointer", transition: "all 0.3s",
           }}>Get Started</button>
         </div>
-        {/* Mobile hamburger */}
         <button className="mobile-menu-btn" onClick={() => setMobileMenu(!mobileMenu)}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={scrollY > 500 || mobileMenu ? "var(--ink)" : "#fff"} strokeWidth="2" strokeLinecap="round" style={{ transition: "stroke 0.3s" }}>
             {mobileMenu ? (<><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></>) 
               : (<><line x1="4" y1="7" x2="20" y2="7" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" /></>)}
           </svg>
@@ -320,49 +364,83 @@ export default function StitchfaceHomepage() {
         </div>
       )}
 
-      {/* HERO */}
-      <section className="wrap hero-section" style={{ maxWidth: "1100px", margin: "0 auto", padding: "148px 48px 112px" }}>
-        <div style={{ maxWidth: "680px", margin: "0 auto", textAlign: "center" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 16px 5px 12px", background: "#FEF3EB", borderRadius: "100px", marginBottom: "32px", animation: "heroIn 0.7s ease both", animationDelay: "0.1s" }}>
+      {/* HERO — looping background video */}
+      <section className="hero-section" style={{
+        position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        overflow: "hidden", padding: "100px 24px 60px",
+        background: "#1a1a1a",
+      }}>
+        {/* Background video */}
+        <video
+          autoPlay muted loop playsInline
+          style={{
+            position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+            objectFit: "cover", zIndex: 0,
+          }}
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+        </video>
+
+        {/* Dark overlay for text readability */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 1,
+          background: "radial-gradient(ellipse at center 40%, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.5) 100%)",
+        }} />
+
+        {/* Bottom fade to page background */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, width: "100%", height: "200px", zIndex: 1,
+          background: "linear-gradient(to bottom, transparent, #FAFAFB)",
+        }} />
+
+        {/* Hero text */}
+        <div style={{ position: "relative", zIndex: 2, maxWidth: "680px", margin: "0 auto", textAlign: "center" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 16px 5px 12px", background: "rgba(255,255,255,0.1)", backdropFilter: "blur(10px)", borderRadius: "100px", marginBottom: "32px", animation: "heroIn 0.7s ease both", animationDelay: "0.1s", border: "1px solid rgba(255,255,255,0.12)" }}>
             <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "var(--accent)" }} />
-            <span style={{ fontFamily: "var(--sans)", fontSize: "13px", fontWeight: 600, color: "#C06A25" }}>Connecting US brands with Bangladesh's top textile mills</span>
+            <span style={{ fontFamily: "var(--sans)", fontSize: "13px", fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>Connecting US brands with Bangladesh's top textile mills</span>
           </div>
 
           <h1 className="hero-h1" style={{
             fontFamily: "var(--serif)", fontSize: "58px", lineHeight: 1.1, fontWeight: 700,
-            letterSpacing: "-0.03em", color: "var(--ink)", marginBottom: "24px",
+            letterSpacing: "-0.03em", color: "#fff", marginBottom: "24px",
             animation: "heroIn 0.8s ease both", animationDelay: "0.2s",
+            textShadow: "0 2px 24px rgba(0,0,0,0.3)",
           }}>
             Source textiles directly.{" "}
             <span style={{ color: "var(--accent)" }}>Skip the middlemen.</span>
           </h1>
 
           <p className="hero-sub" style={{
-            fontFamily: "var(--sans)", fontSize: "18.5px", lineHeight: 1.75, color: "var(--muted)",
+            fontFamily: "var(--sans)", fontSize: "18.5px", lineHeight: 1.75, color: "rgba(255,255,255,0.8)",
             fontWeight: 400, maxWidth: "540px", margin: "0 auto 44px",
             animation: "heroIn 0.8s ease both", animationDelay: "0.35s",
+            textShadow: "0 1px 8px rgba(0,0,0,0.2)",
           }}>
             Stitchface connects American fashion brands with verified Bangladeshi textile manufacturers — reducing lead times, cutting costs, and making ethical sourcing simple.
           </p>
 
           <div className="hero-buttons" style={{ display: "flex", gap: "14px", justifyContent: "center", animation: "heroIn 0.8s ease both", animationDelay: "0.5s" }}>
-            <button onClick={() => demoRef.current?.scrollIntoView({ behavior: "smooth" })} style={{
-              padding: "14px 34px", background: "var(--accent)", color: "#fff", border: "none", borderRadius: "10px",
+            <button onClick={() => demoRef.current?.scrollIntoView({ behavior: "smooth" })} className="tiger-bg" style={{
+              padding: "14px 34px", color: "#fff", border: "none", borderRadius: "10px",
               fontFamily: "var(--sans)", fontSize: "15px", fontWeight: 600, cursor: "pointer",
-              boxShadow: "0 3px 14px rgba(232,120,45,0.25)", transition: "all 0.2s",
+              boxShadow: "0 3px 14px rgba(232,120,45,0.35)", transition: "all 0.2s",
             }} onMouseEnter={e => e.target.style.transform = "translateY(-1px)"} onMouseLeave={e => e.target.style.transform = "translateY(0)"}>
               Try the Demo
             </button>
             <button style={{
-              padding: "14px 34px", background: "#fff", color: "var(--ink)", border: "1px solid #DDDDE0", borderRadius: "10px",
-              fontFamily: "var(--sans)", fontSize: "15px", fontWeight: 600, cursor: "pointer",
-            }}>Learn More</button>
+              padding: "14px 34px", background: "rgba(255,255,255,0.1)", color: "#fff",
+              border: "1px solid rgba(255,255,255,0.25)", borderRadius: "10px", backdropFilter: "blur(4px)",
+              fontFamily: "var(--sans)", fontSize: "15px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s",
+            }} onMouseEnter={e => e.target.style.background = "rgba(255,255,255,0.2)"} onMouseLeave={e => e.target.style.background = "rgba(255,255,255,0.1)"}>
+              Learn More
+            </button>
           </div>
         </div>
       </section>
 
       {/* STATS */}
-      <section data-anim="stats" className="wrap" style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 48px 112px", ...anim("stats") }}>
+      <section data-anim="stats" className="wrap" style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 48px 112px", ...anim("stats") }}>
         <div className="stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px" }}>
           {[
             ["4,500+", "Verified manufacturers across 8 districts"],
@@ -482,7 +560,7 @@ export default function StitchfaceHomepage() {
               Join brands already using Stitchface to connect directly with Bangladesh's top textile manufacturers.
             </p>
             <div className="cta-buttons" style={{ display: "flex", gap: "14px", justifyContent: "center" }}>
-              <button style={{ padding: "16px 40px", background: "var(--accent)", color: "#fff", border: "none", borderRadius: "10px", fontFamily: "var(--sans)", fontSize: "15px", fontWeight: 600, cursor: "pointer", boxShadow: "0 3px 16px rgba(232,120,45,0.3)" }}>Create Free Account</button>
+              <button className="tiger-bg" style={{ padding: "16px 40px", color: "#fff", border: "none", borderRadius: "10px", fontFamily: "var(--sans)", fontSize: "15px", fontWeight: 600, cursor: "pointer", boxShadow: "0 3px 16px rgba(232,120,45,0.3)" }}>Create Free Account</button>
               <button style={{ padding: "16px 40px", background: "transparent", color: "#fff", border: "1px solid rgba(255,255,255,0.18)", borderRadius: "10px", fontFamily: "var(--sans)", fontSize: "15px", fontWeight: 500, cursor: "pointer" }}>Talk to Sales</button>
             </div>
           </div>
@@ -506,6 +584,120 @@ export default function StitchfaceHomepage() {
         </div>
         <p style={{ fontFamily: "var(--sans)", fontSize: "13px", color: "#ccc" }}>© 2026 Stitchface · Dhaka · New York · Los Angeles</p>
       </footer>
+
+      {/* BOBBIN AI ASSISTANT */}
+      {bobOpen && (
+        <div style={{
+          position: "fixed", bottom: "96px", right: "24px", zIndex: 200,
+          width: "380px", maxWidth: "calc(100vw - 48px)", maxHeight: "520px",
+          background: "#fff", borderRadius: "20px", border: "1px solid #E0E0E4",
+          boxShadow: "0 12px 48px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)",
+          display: "flex", flexDirection: "column", overflow: "hidden",
+          animation: "bobSlideUp 0.25s ease both",
+        }}>
+          {/* Header */}
+          <div className="tiger-bg" style={{
+            padding: "16px 20px",
+            display: "flex", alignItems: "center", gap: "12px", flexShrink: 0,
+          }}>
+            <div style={{
+              width: "36px", height: "36px", borderRadius: "50%", background: "rgba(255,255,255,0.2)",
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0,
+            }}>🧵</div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontFamily: "var(--sans)", fontSize: "14px", fontWeight: 600, color: "#fff", margin: 0 }}>Bobbin</p>
+              <p style={{ fontFamily: "var(--sans)", fontSize: "11px", color: "rgba(255,255,255,0.7)", margin: "1px 0 0" }}>Stitchface AI Assistant</p>
+            </div>
+            <button onClick={() => setBobOpen(false)} style={{
+              background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "50%",
+              width: "28px", height: "28px", color: "#fff", fontSize: "14px", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>✕</button>
+          </div>
+
+          {/* Messages */}
+          <div ref={bobChatRef} style={{
+            flex: 1, overflowY: "auto", padding: "16px 16px 8px",
+            display: "flex", flexDirection: "column", gap: "12px",
+          }}>
+            {bobMessages.map((msg, i) => (
+              <div key={i} style={{ alignSelf: msg.role === "user" ? "flex-end" : "flex-start", maxWidth: "85%" }}>
+                {msg.role === "assistant" && i > 0 && (
+                  <p style={{ fontFamily: "var(--sans)", fontSize: "10px", fontWeight: 600, color: "#E8782D", margin: "0 0 4px 4px" }}>Bobbin</p>
+                )}
+                <div style={{
+                  padding: "10px 14px",
+                  borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                  background: msg.role === "user" ? "var(--ink)" : "#F2F2F5",
+                  color: msg.role === "user" ? "#fff" : "var(--ink)",
+                  fontFamily: "var(--sans)", fontSize: "13.5px", lineHeight: 1.55,
+                }}>{msg.text}</div>
+              </div>
+            ))}
+            {bobLoading && (
+              <div style={{ alignSelf: "flex-start", maxWidth: "85%" }}>
+                <p style={{ fontFamily: "var(--sans)", fontSize: "10px", fontWeight: 600, color: "#E8782D", margin: "0 0 4px 4px" }}>Bobbin</p>
+                <div style={{ padding: "12px 18px", borderRadius: "16px 16px 16px 4px", background: "#F2F2F5", display: "flex", gap: "5px" }}>
+                  {[0, 1, 2].map(d => (
+                    <div key={d} style={{
+                      width: "7px", height: "7px", borderRadius: "50%", background: "#bbb",
+                      animation: `bobDot 1s ease-in-out infinite ${d * 0.15}s`,
+                    }} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Input */}
+          <div style={{ padding: "12px 16px", borderTop: "1px solid #F0F0F3", display: "flex", gap: "8px", flexShrink: 0 }}>
+            <input
+              value={bobInput}
+              onChange={e => setBobInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && sendBobbin()}
+              placeholder="Ask Bobbin anything..."
+              style={{
+                flex: 1, padding: "10px 14px", background: "#FAFAFB", border: "1px solid #E5E5E8",
+                borderRadius: "10px", fontFamily: "var(--sans)", fontSize: "13.5px",
+                color: "var(--ink)", outline: "none",
+              }}
+              onFocus={e => e.target.style.borderColor = "#E8782D"}
+              onBlur={e => e.target.style.borderColor = "#E5E5E8"}
+            />
+            <button onClick={sendBobbin} style={{
+              padding: "10px 16px",
+              background: bobInput.trim() ? "var(--accent)" : "#E0E0E4",
+              color: "#fff", border: "none", borderRadius: "10px",
+              fontFamily: "var(--sans)", fontSize: "13px", fontWeight: 600, cursor: "pointer",
+            }}>→</button>
+          </div>
+        </div>
+      )}
+
+      {/* Bobbin FAB */}
+      <button onClick={() => setBobOpen(!bobOpen)} className={bobOpen ? "" : "tiger-bg"} style={{
+        position: "fixed", bottom: "24px", right: "24px", zIndex: 200,
+        width: "60px", height: "60px", borderRadius: "50%",
+        background: bobOpen ? "var(--ink)" : undefined,
+        border: "none", cursor: "pointer",
+        boxShadow: "0 4px 20px rgba(232,120,45,0.3), 0 2px 6px rgba(0,0,0,0.1)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        transition: "all 0.25s ease", fontSize: "26px", color: "#fff",
+      }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.08)"}
+        onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
+        {bobOpen ? "✕" : "🧵"}
+      </button>
+
+      <style>{`
+        @keyframes bobSlideUp {
+          from { opacity: 0; transform: translateY(16px) scale(0.96); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes bobDot {
+          0%, 100% { transform: translateY(0); opacity: 0.4; }
+          50% { transform: translateY(-4px); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }
